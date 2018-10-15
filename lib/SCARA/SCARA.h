@@ -92,6 +92,7 @@ public:
     void move(double x, double y);
 
     void line(double x0, double y0, double xf, double yf);
+    void lineGoldgerg(double x0, double y0, double xf, double yf);
 
 
 };

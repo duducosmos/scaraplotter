@@ -24,8 +24,9 @@ void setup() {
     double xmean = scara.get_xmean();
 
     scara.move(xmean, ymax);
+    delay(1000);
 
-    scara.line(10, 30, 35, 59);
+    scara.lineGoldgerg(40, 50, 20, 20);
     delay(5000);
 
 }
