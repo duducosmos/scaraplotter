@@ -1,4 +1,4 @@
-#Mini SCARA Plotter
+# Mini SCARA Plotter
 
 
 [!SCARA Design](./images/SCARA_ARM.svg)
