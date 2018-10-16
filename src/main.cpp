@@ -7,10 +7,11 @@ Servo servo_left;
 Servo servo_right;
 Servo servo_updow;
 
-const Arms arms = {45, 30, 30, 38, 38};
+const Arms arms = {44, 30, 30, 38, 38};
 SCARA scara(servo_left, servo_right, servo_updow, arms);
 
 double ymax;
+double xmean;
 
 void setup() {
     servo_left.attach(7);
@@ -21,33 +22,17 @@ void setup() {
 
     //scara.move(22.8, 60);
     ymax = scara.get_ymax();
-    double xmean = scara.get_xmean();
+    xmean = scara.get_xmean();
 
     scara.move(xmean, ymax);
     delay(1000);
 
-    scara.lineGoldgerg(40, 50, 20, 20);
-    delay(5000);
 
 }
 
 void loop() {
-    /*
 
-    for(int i = 10; i < 50; i++){
-        for(int j = 10; j < (int) ymax; j++){
-            Serial.println("");
-            Serial.print("x: ");
-            Serial.println(i);
-            Serial.print("y: ");
-            Serial.println(j);
-            scara.move(i, j);
-            delay(100);
-        }
-    }
-    */
-
-
-
+    scara.rectangle(15, 20, 30, 30);
+    delay(5000);
 
 }

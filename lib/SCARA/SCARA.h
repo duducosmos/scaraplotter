@@ -57,7 +57,7 @@ class SCARA{
 private:
     const Arms _arms;
     const double deg_rad = 180.0 / PI;
-    const unsigned long dtime = 100;
+    const unsigned long dtime = 250;
     const double step = 0.1;
     unsigned long t0;
 
@@ -92,8 +92,7 @@ public:
     void move(double x, double y);
 
     void line(double x0, double y0, double xf, double yf);
-    void lineGoldgerg(double x0, double y0, double xf, double yf);
-
+    void rectangle(double x0, double y0, double width, double height);
 
 };
 

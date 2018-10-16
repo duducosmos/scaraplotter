@@ -57,7 +57,7 @@ void SCARA::set_direction(double x0, double y0, double xf, double yf){
     direction.fxy = direction.dx - direction.dy;
 }
 
-void SCARA::lineGoldgerg(double x0, double y0, double xf, double yf){
+void SCARA::line(double x0, double y0, double xf, double yf){
     if(yf > get_ymax()){
         yf = get_ymax();
     }
@@ -118,78 +118,11 @@ void SCARA::lineGoldgerg(double x0, double y0, double xf, double yf){
 
 }
 
-void SCARA::line(double x0, double y0, double xf, double yf){
-    if(yf > get_ymax()){
-        yf = get_ymax();
-    }
-
-    if(y0 > get_ymax()){
-        y0 = get_ymax();
-    }
-
-    if(y0 < 0){
-        y0 = 0;
-    }
-
-    if(yf < 0){
-        yf = 0;
-    }
-
-    if(x0 < 0){
-        x0 = 0;
-    }
-
-    if(xf < 0){
-        xf = 0;
-    }
-
-    /*
-    TODO: Verify xmax;
-    */
-    _start_direction();
-    set_direction(x0, y0, xf, yf);
-
-    move(x0, y0);
-    double a;
-    double b;
-    direction.xr = x0;
-    direction.yr = y0;
-    if(xf == x0 || yf == y0){
-        a = 0;
-
-    }else{
-        a = (yf - y0) / (xf - x0);
-        b = y0 - a * x0;
-
-    }
-
-
-    while(true){
-        if(direction.xr >= xf && direction.yr >= yf){
-            break;
-        }
-
-        direction.xr += direction.i * step;
-        if(a != 0){
-            direction.yr = a * direction.xr + b;
-        }else{
-            direction.yr  += direction.j * step;
-        }
-
-        move(direction.xr, direction.yr);
-        Serial.println("");
-        Serial.print("xr: ");
-        Serial.println(direction.xr);
-        Serial.print("yr: ");
-        Serial.println(direction.yr);
-    }
-
-
-    move(get_xmean(), get_ymax());
-
-
-
-
+void SCARA::rectangle(double x0, double y0, double width, double height){
+    line(x0, y0, x0, y0 + height);
+    line(x0, y0 + height, x0 + width, y0 + height);
+    line(x0 + width, y0 + height, x0 + width, y0);
+    line(x0 + width, y0, x0, y0);
 }
 
 
