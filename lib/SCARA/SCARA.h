@@ -58,7 +58,7 @@ private:
     const Arms _arms;
     const double deg_rad = 180.0 / PI;
     const unsigned long dtime = 250;
-    const double step = 0.1;
+    const double steps = 10;
     unsigned long t0;
 
     Direction direction;

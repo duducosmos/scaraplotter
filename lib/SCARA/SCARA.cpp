@@ -94,13 +94,16 @@ void SCARA::line(double x0, double y0, double xf, double yf){
 
     move(x0, y0);
 
+    double nx = abs(direction.xr - direction.dx) / steps;
+    double ny = abs(direction.yr - direction.dy) / steps;
+
 
     while((direction.xr != direction.dx) || (direction.yr != direction.dy)){
         if(direction.fxy > 0){
-            ++direction.xr;
+            direction.xr =  direction.xr + nx;
             direction.fxy = direction.fxy - direction.dy;
         }else{
-            ++direction.yr;
+            direction.yr = direction.yr + ny;
             direction.fxy = direction.fxy + direction.dx;
 
         }
@@ -110,8 +113,12 @@ void SCARA::line(double x0, double y0, double xf, double yf){
         Serial.println("");
         Serial.print("xr: ");
         Serial.println(x0 + direction.xr * direction.i);
+        Serial.println(nx);
+
         Serial.print("yr: ");
         Serial.println(y0 + direction.yr * direction.j);
+        Serial.println(ny);
+        Serial.println(direction.yr);
     }
     //move(get_xmean(), get_ymax());
     Serial.println("Fim");
