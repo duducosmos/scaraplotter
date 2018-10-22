@@ -1,14 +1,19 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <SCARA.h>
-
+#include <ButtonPanel.h>
+#include <Controller.h>
 
 Servo servo_left;
 Servo servo_right;
 Servo servo_updow;
 
-const Arms arms = {43, 79, 79, 75, 75};
+const Arms arms = {43.5, 45, 45, 45., 45.};
 SCARA scara(servo_left, servo_right, servo_updow, arms);
+
+ButtonPanel buttonsPanel(A0);
+
+Controller controller(scara);
 
 double ymax;
 double xmean;
@@ -18,22 +23,32 @@ void setup() {
     servo_right.attach(8);
     servo_updow.attach(4);
 
+    controller.attachButtonPanel(&buttonsPanel);
+
     Serial.begin(9600);
 
-    //servo_left.write(0);
-    //servo_right.write(0);
+    servo_updow.write(180);
 
-    //scara.move(22.8, 60);
     ymax = scara.get_ymax();
     xmean = scara.get_xmean();
 
     scara.move(xmean, ymax);
-    delay(1000);
+    //delay(5000);
+    servo_updow.write(90);
+    //delay(5000);
 
 
 }
 
 void loop() {
-    scara.rectangle(10, 40, 40, 50);
-    delay(5000);
+
+    buttonsPanel.update();
+    delay(1);
+
+
+    //scara.rectangle(xmean, ymax / 2, 20, 20);
+    //scara.line(xmean, ymax/2, xmean, ymax);
+
+
+
 }
