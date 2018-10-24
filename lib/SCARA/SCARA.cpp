@@ -44,31 +44,40 @@ CircIntersec SCARA::_get_coord_intersec(double x0, double y0, double x1,
         }
         double dx = x1 - x0;
         double dy = y1 - y0;
-        double d = sqrt(dx*dx + dy*dy);
-        double x = (d - r1*r1 / d + r0*r0 / d) / 2.0;
-        double s = r0 * r0 - x * x;
-        CircIntersec circint;
-        if(s < 0){
-            circint.is_intesected = false;
-            circint.x = 0;
-            circint.y = 0;
-            return circint;
+        double n = r1*r1-r0*r0 - x1*x1 + x0*x0 -y1*y1 +y0*y0;
+        n = n / (2.0 * dy);
+        double a = (dx / dy) * (dx / dy) + 1.0;
+        double b = 2.0 * y0 * (dx / dy) - 2.0 * n * (dx / dy) - 2.0 * x0;
 
+        double c =  x0 * x0 + y0 * y0 + n * n -r0 * r0 - 2.0 * y0 * n;
+        double delta = b * b - 4.0 * a * c;
+
+        CircIntersec circint;
+
+        if(delta < 0){
+            circint.is_intesected = false;
+            return circint;
         }
 
-        double y = sqrt(s);
+        delta = sqrt(delta);
 
         circint.is_intesected = true;
-        circint.x = (x * dx - y * dy) / d + x0;
-        circint.y = (x * dy + y * dx) / d + y0;
+        circint.xa = (-b + delta) / 2 * a;
+        circint.xb = (-b - delta) / 2 * a;
+        circint.ya = n - circint.xa * dx / dy;
+        circint.yb = n - circint.xb * dx / dy;
+
 
         return circint;
+
+
+
 }
 
 MotorAngles SCARA::_coordinate_to_angles(double xe, double ye){
 
     MotorAngles motor_angle;
-    CircIntersec circint0 = _get_coord_intersec(-_arms.AB / 2.0, 0, xe, ye,
+    CircIntersec circint0 = _get_coord_intersec(xe, ye, 0, 0,
                                                 _arms.AC, _arms.CE);
 
     if(circint0.is_intesected == false){
@@ -79,7 +88,7 @@ MotorAngles SCARA::_coordinate_to_angles(double xe, double ye){
     }
 
 
-    CircIntersec circint1 = _get_coord_intersec(xe, ye, _arms.AB / 2.0, 0,
+    CircIntersec circint1 = _get_coord_intersec(xe, ye, _arms.AB, 0,
                                                 _arms.BD, _arms.DE);
 
     if(circint1.is_intesected == false){
@@ -89,12 +98,34 @@ MotorAngles SCARA::_coordinate_to_angles(double xe, double ye){
         return motor_angle;
     }
 
+    double xIA;
+    double yIA;
+
+    double xIB;
+    double yIB;
+
+    if(circint0.xa > circint0.xb){
+        xIA = circint0.xb;
+        yIA = circint0.yb;
+    }else{
+        xIA = circint0.xa;
+        yIA = circint0.ya;
+    }
+
+    if(circint1.xa < circint1.xb){
+        xIB = circint1.xb;
+        yIB = circint1.yb;
+    }else{
+        xIB = circint1.xa;
+        yIB = circint1.ya;
+    }
+
 
     motor_angle.in_limit = true;
 
-    motor_angle.alpha = 180.0 - atan2(circint0.y, - _arms.AB / 2.0 - circint0.x) * deg_rad;
+    motor_angle.alpha = 180.0 - atan2(yIA, xIA)* deg_rad;
 
-    motor_angle.beta = atan2(circint1.y, circint1.x -  _arms.AB / 2.0) * deg_rad;
+    motor_angle.beta = atan2(yIB, xIB - _arms.AB) * deg_rad;
 
     Serial.println(" ");
 

@@ -46,8 +46,10 @@ typedef struct {
 
 typedef struct  {
     bool is_intesected;
-    double x;
-    double y;
+    double xa;
+    double ya;
+    double xb;
+    double yb;
 } CircIntersec;
 
 typedef struct {

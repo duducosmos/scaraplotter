@@ -9,7 +9,7 @@ Servo servo_right;
 Servo servo_updow;
 
 //Arms arms = {43.5, 44., 44., 43., 43.};
-Arms arms = {43.6, 44.1, 44.1, 43., 43.};
+Arms arms = {44, 45, 45, 45, 45};
 SCARA scara(servo_left, servo_right, servo_updow, arms);
 
 ButtonPanel buttonsPanel(A0);
