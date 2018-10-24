@@ -63,7 +63,7 @@ void loop() {
         scara.move_updown();
     }
     double x = map(analogRead(A0), 0,1023, -20, 20);
-    double y = map(analogRead(A1), 0, 1023, ymax / 4, ymax);
+    double y = map(analogRead(A1), 0, 1023, 0, ymax);
     double delta_y = error_y(x);
 
     Serial.print("x: ");
@@ -74,7 +74,7 @@ void loop() {
     Serial.print(", delta_y: ");
     Serial.println(delta_y);
 
-    scara.move(x, y );
+    scara.move(x, y);
     delay(100);
 
 

@@ -8,6 +8,7 @@ Parallel Arm robot.
 
 #ifndef SCARA_H
 #define SCARA_H
+
 typedef struct {
 
     /*
@@ -43,18 +44,20 @@ typedef struct {
 
 } Arms;
 
+typedef struct  {
+    bool is_intesected;
+    double x;
+    double y;
+} CircIntersec;
+
 typedef struct {
-    double dx;
-    double dy;
-    double xr;
-    double yr;
-    double fxy;
-    double step;
-    int i;
-    int j;
-} Direction;
+    double alpha;
+    double beta;
+    bool in_limit;
+} MotorAngles;
 
 class SCARA{
+
 private:
     Arms _arms;
     const double deg_rad = 180.0 / M_PI;
@@ -64,35 +67,16 @@ private:
     const unsigned long todown = 60;
     unsigned long t0;
 
-    // When in calibration mode, ad2just the following factor until the servos move exactly 90 degrees
-
-    unsigned long SERVOFAKTORLEFT = 1;
-    unsigned long SERVOFAKTORRIGHT = 1;
-    // Zero-position of left and right servo
-    // When in calibration mode, adjust the NULL-values so that the servo arms are at all times parallel
-    // either to the X or Y axis
-    unsigned long SERVOLEFTNULL = 0;
-    unsigned long SERVORIGHTNULL = 0;
     bool up_state = false;
-
-    Direction direction;
 
     Servo _servo_left;
     Servo _servo_right;
     Servo _servo_updown;
 
-    double thetaB(double x, double y);
-    double thetaD(double x, double y);
-    double thetaA(double x, double y);
-    double thetaC(double x, double y);
-    double be(double x, double y);
-    double ae(double x, double y);
+    CircIntersec _get_coord_intersec(double x0, double y0, double x1, double y1,
+                                     double r0, double r1);
 
-    void _start_direction();
-
-    void set_direction(double x0, double y0, double xf, double yf);
-
-
+    MotorAngles _coordinate_to_angles(double xe, double ye);
 
 public:
 
@@ -104,23 +88,12 @@ public:
     double get_ymax();
     double get_xmean();
 
-    double beta(double x, double y);
-    double alpha(double x, double y);
     void move(double x, double y);
     void move_updown();
 
-    void circle(double xm, double ym, int r);
-
-    void lineMidPoint(double x0, double y0, double xf, double yf);
-
     void line(double x0, double y0, double xf, double yf);
-    void line2(double x0, double y0, double xf, double yf);
-    void lineDDA(double x0, double y0, double xf, double yf);
-    void lineBresenham(double x0, double y0, double xf, double yf);
+
     void rectangle(double x0, double y0, double width, double height);
-
-    void drawnumber(int, double x0, double y0, int scale);
-
 
 };
 

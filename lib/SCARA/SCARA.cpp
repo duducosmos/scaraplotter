@@ -6,7 +6,6 @@ _arms(arms), _servo_left(servo_left),
 _servo_right(servo_right), _servo_updown(servo_updow)
 {
     t0 = millis();
-    _start_direction();
 
 }
 
@@ -21,15 +20,7 @@ void SCARA::move_updown(){
 
 }
 
-void SCARA::_start_direction(){
-    direction.dx = 0;
-    direction.dy = 0;
-    direction.xr = 0;
-    direction.yr = 0;
-    direction.i = 0;
-    direction.j = 0;
-    direction.fxy = 0;
-}
+
 
 double SCARA::get_ymax(){
     double tmp = _arms.AC * _arms.AC + _arms.AB * _arms.AB / 4.0;
@@ -45,291 +36,113 @@ double SCARA::get_xmean(){
 
 }
 
-void SCARA::set_direction(double x0, double y0, double xf, double yf){
-    direction.dy = yf - y0;
-    if(direction.dy < 0){
-        direction.j = -1;
-    }else {
-        direction.j = 1;
+
+CircIntersec SCARA::_get_coord_intersec(double x0, double y0, double x1,
+                                        double y1, double r0, double r1){
+        if(y0 == y1){
+            y0 += 0.01;
+        }
+        double dx = x1 - x0;
+        double dy = y1 - y0;
+        double d = sqrt(dx*dx + dy*dy);
+        double x = (d - r1*r1 / d + r0*r0 / d) / 2.0;
+        double s = r0 * r0 - x * x;
+        CircIntersec circint;
+        if(s < 0){
+            circint.is_intesected = false;
+            circint.x = 0;
+            circint.y = 0;
+            return circint;
+
+        }
+
+        double y = sqrt(s);
+
+        circint.is_intesected = true;
+        circint.x = (x * dx - y * dy) / d + x0;
+        circint.y = (x * dy + y * dx) / d + y0;
+
+        return circint;
+}
+
+MotorAngles SCARA::_coordinate_to_angles(double xe, double ye){
+
+    MotorAngles motor_angle;
+    CircIntersec circint0 = _get_coord_intersec(-_arms.AB / 2.0, 0, xe, ye,
+                                                _arms.AC, _arms.CE);
+
+    if(circint0.is_intesected == false){
+        motor_angle.in_limit = false;
+        motor_angle.alpha = 90;
+        motor_angle.beta = 90;
+        return motor_angle;
     }
 
-    direction.dy = abs(direction.dy);
 
-    direction.dx = xf - x0;
+    CircIntersec circint1 = _get_coord_intersec(xe, ye, _arms.AB / 2.0, 0,
+                                                _arms.BD, _arms.DE);
 
-    if(direction.dx < 0){
-        direction.i = -1;
+    if(circint1.is_intesected == false){
+        motor_angle.in_limit = false;
+        motor_angle.alpha = 90;
+        motor_angle.beta = 90;
+        return motor_angle;
+    }
+
+
+    motor_angle.in_limit = true;
+
+    motor_angle.alpha = 180.0 - atan2(circint0.y, - _arms.AB / 2.0 - circint0.x) * deg_rad;
+
+    motor_angle.beta = atan2(circint1.y, circint1.x -  _arms.AB / 2.0) * deg_rad;
+
+    Serial.println(" ");
+
+    Serial.print("Alpha: ");
+    Serial.print(motor_angle.alpha );
+    Serial.print(", Beta: ");
+    Serial.println(motor_angle.beta);
+    return motor_angle;
+
+
+
+
+}
+
+
+void SCARA::line(double x0, double y0, double xf, double yf){
+    /* Using DDA algorithm */
+
+    double dx = xf - x0;
+    double dy = yf - y0;
+    double step;
+    if(abs(dx) >= abs(dy)){
+        step = abs(dx);
     }else{
-        direction.i = 1;
+        step = abs(dy);
     }
 
-    direction.dx = abs(direction.dx);
-
-    direction.fxy = direction.dx - direction.dy;
-}
-
-void SCARA::line2(double x0, double y0, double xf, double yf){
-
-    direction.dx = abs(xf - x0);
-    direction.dy = abs(yf - y0);
-    direction.i = x0 < xf ? 1: -1;
-    direction.j = y0 < yf ? 1: -1;
-    double x = x0;
-    double y = y0;
-    long over = 0;
-    move(x, y);
-    if(direction.dx > direction.dy){
-        for(int i = 0; i < (int) direction.dx; i++){
-
-            x += direction.i;
-            over += direction.dy;
-            if(over >= direction.dx){
-                over -= direction.dx;
-                y += direction.j;
-            }
-            Serial.print("x: ");
-            Serial.print(x);
-            Serial.print(", y: ");
-            Serial.println(y);
-            move(x, y);
-        }
-    }else{
-        for(int i=0; i < (int) direction.dy; i++){
-
-            y += direction.j;
-            over += direction.dx;
-            if(over >= direction.dy){
-                over -= direction.dy;
-                x += direction.i;
-
-            }
-            Serial.print("x: ");
-            Serial.print(x);
-            Serial.print(", y: ");
-            Serial.println(y);
-            move(x, y);
-        }
-    }
-
-    move(xf, yf);
-
-}
-
-
-
-void SCARA::lineBresenham(double x0, double y0, double xf, double yf){
-    direction.dx = abs(xf - x0);
-    direction.dy = abs(yf - y0);
-    direction.i = x0 < xf ? 1: -1;
-    direction.j = y0 < yf ? 1: -1;
-    float error = direction.dx + direction.dy;
-    float e2;
-    double x  = x0;
-    double y = y0;
-
-
-    while(true){
-        move(x, y);
-        if( x == xf && y == yf){
-            break;
-        }
-        Serial.print("x: ");
-        Serial.print(x);
-        Serial.print(", y: ");
-        Serial.println(y);
-
-        e2 = 2 * error;
-        if(e2 >= direction.dy){
-            error += direction.dy;
-            x += direction.i;
-        }
-        if(e2 <= direction.dx){
-            error += direction.dx;
-            y += direction.j;
-        }
-
-
-    }
-
-}
-
-void SCARA::lineMidPoint(double x0, double y0, double xf, double yf){
-
-
-    direction.dx = xf - x0;
-    direction.dy = yf - y0;
-
-    direction.step = 1;
-
-    int n = (int) direction.dx / direction.step;
-    double d = direction.dy - direction.dx / 2;
-    double x = x0;
-    double y = y0;
-    move(x, y);
-
-    int i = 0;
-
-
-    while(i <  n){
-        x = x + direction.step;
-        if(d < 0){
-            d = d + direction.dy;
-        }else{
-            d = d + direction.dy - direction.dx;
-            y = y + direction.step;
-        }
-        move(x, y);
-
-        Serial.print("x: ");
-        Serial.print(x);
-        Serial.print(", y: ");
-        Serial.println(y);
-
-        i++;
-
-    }
-
-
-}
-
-
-
-void SCARA::lineDDA(double x0, double y0, double xf, double yf){
-
-    direction.dx = xf - x0;
-    direction.dy = yf - y0;
-    if(abs(direction.dx) >= abs(direction.dy)){
-        direction.step = abs(direction.dx);
-    }else{
-        direction.step = abs(direction.dy);
-    }
-
-    direction.dx = direction.dx / direction.step;
-    direction.dy = direction.dy / direction.step;
+    dx = dx / step;
+    dy = dy / step;
 
     int i = 0;
     double x = x0;
     double y = y0;
 
-    while(i <= direction.step){
+    while(i <= step){
 
         Serial.print("x: ");
         Serial.print(x);
         Serial.print(", y: ");
         Serial.println(y);
         move(x, y);
-        x = x + direction.dx;
-        y = y + direction.dy;
+        x = x + dx;
+        y = y + dy;
         i = i + 1;
     }
 
 }
 
-void SCARA::line(double x0, double y0, double xf, double yf){
-    if(yf > get_ymax()){
-        yf = get_ymax();
-    }
-
-    if(y0 > get_ymax()){
-        y0 = get_ymax();
-    }
-
-    if(y0 < 0){
-        y0 = 0;
-    }
-
-    if(yf < 0){
-        yf = 0;
-    }
-
-    if(x0 < 0){
-        x0 = 0;
-    }
-
-    if(xf < 0){
-        xf = 0;
-    }
-
-    /*
-    TODO: Verify xmax;
-    */
-
-
-    _start_direction();
-    set_direction(x0, y0, xf, yf);
-
-
-    /*
-    TODO: Move to x0, y0, with Up
-    */
-
-    move(x0, y0);
-
-    double nx = abs(direction.xr - direction.dx) / steps;
-    double ny = abs(direction.yr - direction.dy) / steps;
-
-
-    while((direction.xr != direction.dx) || (direction.yr != direction.dy)){
-
-        direction.xr =  direction.xr + nx;
-        //direction.fxy = direction.fxy - direction.dy;
-
-        direction.yr = direction.yr + ny;
-        //direction.fxy = direction.fxy + direction.dx;
-
-
-
-        move(x0 + direction.xr * direction.i, y0 + direction.yr * direction.j);
-
-        /*
-        Serial.println("");
-        Serial.print("xr: ");
-        Serial.println(x0 + direction.xr * direction.i);
-        Serial.println(nx);
-
-        Serial.print("yr: ");
-        Serial.println(y0 + direction.yr * direction.j);
-        Serial.println(ny);
-        Serial.println(direction.yr);
-        */
-    }
-    //move(get_xmean(), get_ymax());
-    //Serial.println("Fim");
-
-}
-
-
-void SCARA::drawnumber(int n, double x0, double y0, int scale){
-
-    double base = 15.0;
-    double altura = 30.0;
-
-
-    up_state = true;
-    _servo_updown.write(toup);
-    move(x0, y0 + altura);
-    up_state = false;
-    _servo_updown.write(todown);
-
-    double dois[5][4] = {{x0, y0 + altura, x0 + base, y0 + altura},
-                      {x0 + base, y0 + altura, x0 + base, y0 + altura / 2.0},
-                      {x0 + base, y0 + altura / 2.0, x0, y0 + altura / 2.0},
-                      {x0, y0 + altura / 2.0, x0, y0},
-                      {x0, y0, x0 + base, y0},
-                    };
-
-    for(int i=0; i < 5; i++){
-        Serial.print("i: ");
-        Serial.println(i);
-        lineDDA(dois[i][0], dois[i][1], dois[i][2], dois[i][3]);
-        Serial.println(" ");
-
-
-    }
-    up_state = true;
-    _servo_updown.write(toup);
-
-}
 
 
 void SCARA::rectangle(double x0, double y0, double width, double height){
@@ -346,40 +159,9 @@ void SCARA::rectangle(double x0, double y0, double width, double height){
                          {x0 + width, y0, x0, y0}
                      };
     for(int i=0; i<4;i++){
-        lineDDA(rect[i][0], rect[i][1], rect[i][2], rect[i][3]);       
+        line(rect[i][0], rect[i][1], rect[i][2], rect[i][3]);
     }
 
-
-
-
-
-
-    /*
-
-
-
-    lineBresenham(x0, y0, x0, y0 + height);
-    lineBresenham(x0, y0 + height, x0 + width, y0 + height);
-    lineBresenham(x0 + width, y0 + height, x0 + width, y0);
-    lineBresenham(x0 + width, y0, x0, y0);
-    */
-
-    /*
-
-
-    line2(x0, y0, x0, y0 + height);
-    line2(x0, y0 + height, x0 + width, y0 + height);
-    line2(x0 + width, y0 + height, x0 + width, y0);
-    line2(x0 + width, y0, x0, y0);
-
-
-
-
-    line(x0, y0, x0, y0 + height);
-    line(x0, y0 + height, x0 + width, y0 + height);
-    line(x0 + width, y0 + height, x0 + width, y0);
-    line(x0 + width, y0, x0, y0);
-    */
 
     up_state = true;
     _servo_updown.write(toup);
@@ -387,92 +169,17 @@ void SCARA::rectangle(double x0, double y0, double width, double height){
 
 
 void SCARA::move(double x, double y){
-    int _beta = beta(x, y);
-    int _alpha = alpha(x, y);
-
-    Serial.println("");
-
-
-
-    Serial.print("Beta: ");
-    Serial.println(SERVOFAKTORRIGHT * _beta + SERVORIGHTNULL);
-    Serial.print("Alpha: ");
-    Serial.println(SERVOFAKTORLEFT * _alpha + SERVOLEFTNULL);
-    Serial.println("");
-
-
     t0 = millis();
     while(millis() - t0 <= dtime);
 
-    _servo_right.write(SERVOFAKTORRIGHT * _beta + SERVORIGHTNULL);
-    _servo_left.write(SERVOFAKTORLEFT * _alpha + SERVOLEFTNULL);
+    MotorAngles motor_angle = _coordinate_to_angles(x, y);
 
-
-}
-
-double SCARA::thetaB(double x, double y){
-    double tmp = abs(x - _arms.AB / 2.0);
-    if(tmp == 0.0){
-        return 90;
-    }
-    tmp = atan2(y, tmp) * deg_rad;
-
-    return tmp;
-}
-
-double SCARA::thetaD(double x, double y){
-
-    double _tmp = be(x, y);
-
-    double tmp = _tmp * _tmp - _arms.DE *  _arms.DE + _arms.BD * _arms.BD;
-
-
-    double tmp2 = 2.0 * _tmp * _arms.BD;
-
-    tmp = tmp / tmp2;
-
-    tmp = acos(tmp) * deg_rad;
-
-    return tmp;
-}
-
-double SCARA::be(double x, double y){
-
-    double abx = abs(x - _arms.AB / 2.0 );
-    return sqrt(abx * abx + y * y);
-
-}
-
-double SCARA::beta(double x, double y){
-
-    return 180.0 -  thetaB(x, y) - thetaD(x, y);
-}
-
-double SCARA::thetaA(double x, double y){
-    double tmp = abs(x + _arms.AB / 2.0);
-    if(tmp == 0.0){
-        return 90;
+    if(motor_angle.in_limit == true){
+        _servo_left.write(motor_angle.alpha);
+        _servo_right.write(motor_angle.beta);
     }
 
-    return atan2(y, tmp) * deg_rad;
-}
-
-double SCARA::thetaC(double x, double y){
-
-    double _tmp = ae(x, y);
-    double tmp = _tmp * _tmp +  _arms.CE * _arms.CE - _arms.AC * _arms.AC;
-    tmp = tmp / (2.0 * _tmp * _arms.CE);
-    return acos(tmp) * deg_rad;
-}
 
 
-double SCARA::ae(double x, double y){
 
-    double tmp = (x + _arms.AB / 2.0);
-    return sqrt(tmp * tmp + y * y);
-}
-
-double SCARA::alpha(double x, double y){
-
-    return thetaA(x, y) + thetaC(x, y);
 }
