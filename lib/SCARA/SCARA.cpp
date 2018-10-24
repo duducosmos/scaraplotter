@@ -340,11 +340,18 @@ void SCARA::rectangle(double x0, double y0, double width, double height){
     up_state = false;
     _servo_updown.write(todown);
 
+    double rect[4][4] = {{x0, y0, x0, y0 + height},
+                         {x0, y0 + height, x0 + width, y0 + height},
+                         {x0 + width, y0 + height, x0 + width, y0},
+                         {x0 + width, y0, x0, y0}
+                     };
+    for(int i=0; i<4;i++){
+        lineDDA(rect[i][0], rect[i][1], rect[i][2], rect[i][3]);       
+    }
 
-    lineDDA(x0, y0, x0, y0 + height);
-    lineDDA(x0, y0 + height, x0 + width, y0 + height);
-    lineDDA(x0 + width, y0 + height, x0 + width, y0);
-    lineDDA(x0 + width, y0, x0, y0);
+
+
+
 
 
     /*
@@ -383,13 +390,16 @@ void SCARA::move(double x, double y){
     int _beta = beta(x, y);
     int _alpha = alpha(x, y);
 
-    /*
+    Serial.println("");
+
+
 
     Serial.print("Beta: ");
     Serial.println(SERVOFAKTORRIGHT * _beta + SERVORIGHTNULL);
     Serial.print("Alpha: ");
     Serial.println(SERVOFAKTORLEFT * _alpha + SERVOLEFTNULL);
-    */
+    Serial.println("");
+
 
     t0 = millis();
     while(millis() - t0 <= dtime);
@@ -401,26 +411,21 @@ void SCARA::move(double x, double y){
 }
 
 double SCARA::thetaB(double x, double y){
-    /*
-    * $theta_{B} = \tang^{-1}\left(\frac{y}{\bar{AB} - x}\right)$
-    */
-    double abx = abs(_arms.AB  - x);
-    abx = atan2(y, abx) * deg_rad;
+    double tmp = abs(x - _arms.AB / 2.0);
+    if(tmp == 0.0){
+        return 90;
+    }
+    tmp = atan2(y, tmp) * deg_rad;
 
-    return abx;
+    return tmp;
 }
 
 double SCARA::thetaD(double x, double y){
-    /*
-    * $\theta_{D} = \cos^{-1}\left(
-          \frac{\bar{BE}^{2} +\bar{BD}^{2} -\bar{DE}^{2}}{2 \bar{BE}\bar{BD}}
-        \right)
-       $
-    */
+
     double _tmp = be(x, y);
 
+    double tmp = _tmp * _tmp - _arms.DE *  _arms.DE + _arms.BD * _arms.BD;
 
-    double tmp = _tmp * _tmp + _arms.BD *  _arms.BD - _arms.DE * _arms.DE;
 
     double tmp2 = 2.0 * _tmp * _arms.BD;
 
@@ -428,57 +433,46 @@ double SCARA::thetaD(double x, double y){
 
     tmp = acos(tmp) * deg_rad;
 
-
-
     return tmp;
 }
 
 double SCARA::be(double x, double y){
-    /*
-    $\bar{BE} = \sqrt{(\bar{AB}^{2}+y^{2})}$
-    */
-    double abx = _arms.AB - x;
+
+    double abx = abs(x - _arms.AB / 2.0 );
     return sqrt(abx * abx + y * y);
 
 }
 
 double SCARA::beta(double x, double y){
-    /*
-    $\beta = \theta_{B} + \theta_{D}$
-    */
+
     return 180.0 -  thetaB(x, y) - thetaD(x, y);
 }
 
 double SCARA::thetaA(double x, double y){
-    /*
-    $\theta_{A} = \tan^{-1}\left(\frac{y}{x}\right)$
-    */
-    return atan2(y, x) * deg_rad;
+    double tmp = abs(x + _arms.AB / 2.0);
+    if(tmp == 0.0){
+        return 90;
+    }
+
+    return atan2(y, tmp) * deg_rad;
 }
 
 double SCARA::thetaC(double x, double y){
-    /*
-    $\theta_{C} = \cos^{-1}\left(
-    \frac{\bar{AE}^{2}+\bar{AC}^{2}-\bar{CE}^2}{2\bar{AE}\bar{AC}}
-    \right)$
-    */
+
     double _tmp = ae(x, y);
-    double tmp = _tmp * _tmp +  _arms.AC * _arms.AC - _arms.CE * _arms.CE;
-    tmp = tmp / (2.0 * _tmp * _arms.AC);
+    double tmp = _tmp * _tmp +  _arms.CE * _arms.CE - _arms.AC * _arms.AC;
+    tmp = tmp / (2.0 * _tmp * _arms.CE);
     return acos(tmp) * deg_rad;
 }
 
 
 double SCARA::ae(double x, double y){
-    /*
-     $\bar{AE} = \sqrt{x^{2} + y^{2}}$
-    */
-    return sqrt(x * x + y * y);
+
+    double tmp = (x + _arms.AB / 2.0);
+    return sqrt(tmp * tmp + y * y);
 }
 
 double SCARA::alpha(double x, double y){
-    /*
-      $\alpha = \theta_{A} + \theta_{C}$
-    */
+
     return thetaA(x, y) + thetaC(x, y);
 }

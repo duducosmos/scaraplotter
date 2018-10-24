@@ -56,15 +56,15 @@ typedef struct {
 
 class SCARA{
 private:
-    const Arms _arms;
-    const double deg_rad = 180.0 / PI;
+    Arms _arms;
+    const double deg_rad = 180.0 / M_PI;
     const unsigned long dtime = 500;
     const double steps = 10;
     const unsigned long toup = 150;
     const unsigned long todown = 60;
     unsigned long t0;
 
-    // When in calibration mode, adjust the following factor until the servos move exactly 90 degrees
+    // When in calibration mode, ad2just the following factor until the servos move exactly 90 degrees
 
     unsigned long SERVOFAKTORLEFT = 1;
     unsigned long SERVOFAKTORRIGHT = 1;
@@ -97,6 +97,9 @@ private:
 public:
 
     SCARA(Servo, Servo, Servo, Arms);
+    void set_arms(Arms arms){
+        _arms = arms;
+    }
 
     double get_ymax();
     double get_xmean();
