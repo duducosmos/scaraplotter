@@ -46,10 +46,9 @@ typedef struct {
 
 typedef struct  {
     bool is_intesected;
-    double xa;
-    double ya;
-    double xb;
-    double yb;
+    double sx1;
+    double sx2;
+
 } CircIntersec;
 
 typedef struct {
@@ -61,6 +60,16 @@ typedef struct {
 class SCARA{
 
 private:
+
+    #define SERVOFAKTORLEFT 1
+    #define SERVOFAKTORRIGHT 1
+
+    // Zero-position of left and right servo
+    // When in calibration mode, adjust the NULL-values so that the servo arms are at all times parallel
+    // either to the X or Y axis
+    #define SERVOLEFTNULL 2250
+    #define SERVORIGHTNULL 920
+
     Arms _arms;
     const double deg_rad = 180.0 / M_PI;
     const unsigned long dtime = 500;
