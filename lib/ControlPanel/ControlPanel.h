@@ -19,15 +19,21 @@ class ControlPanel {
     ObserverControlPanel* observer;
     PValues panel_values;
     unsigned long millis_tr_pressed;
+    int _xmin;
+    int _xmax;
+    int _ymin;
+    int _ymax;
     int _xpin;
     int _ypin;
     int _btnpin;
 
 
     void _notifyObserver();
+    void _update();
 
 public:
-    ControlPanel(const int xpin, const int ypin, const int btnpin);
+    ControlPanel(const int xpin, const int ypin, const int btnpin,
+                 int xmin, int xmax, int ymin, int ymax);
     void registerOberver(ObserverControlPanel*);
     void unregisterObserver();
     void update();
