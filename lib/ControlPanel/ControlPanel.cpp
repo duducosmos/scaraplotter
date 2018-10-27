@@ -49,7 +49,7 @@ void ControlPanel::_update(){
   }else{
     panel_values.is_btn_pressed = true;
     if(panel_values.time_btn_pressed == 0){
-      panel_values.time_btn_pressed = millis();
+      panel_values.time_btn_pressed = 1.0;
       millis_tr_pressed = millis();
     }else{
       panel_values.time_btn_pressed = millis() - millis_tr_pressed;
