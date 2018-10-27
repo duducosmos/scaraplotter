@@ -8,7 +8,6 @@ Parallel Arm robot.
 
 #ifndef SCARA_H
 #define SCARA_H
-
 typedef struct {
 
     /*
@@ -44,34 +43,17 @@ typedef struct {
 
 } Arms;
 
-typedef struct  {
-    bool is_intesected;
-    double sx1;
-    double sx2;
-
-} CircIntersec;
 
 typedef struct {
-    double alpha;
-    double beta;
-    bool in_limit;
-} MotorAngles;
+    bool is_intersected;
+    double xs1;
+    double xs2;
+} InterCircum;
 
 class SCARA{
-
 private:
-
-    #define SERVOFAKTORLEFT 1
-    #define SERVOFAKTORRIGHT 1
-
-    // Zero-position of left and right servo
-    // When in calibration mode, adjust the NULL-values so that the servo arms are at all times parallel
-    // either to the X or Y axis
-    #define SERVOLEFTNULL 2250
-    #define SERVORIGHTNULL 920
-
-    Arms _arms;
-    const double deg_rad = 180.0 / M_PI;
+    const Arms _arms;
+    const double deg_rad = 180.0 / PI;
     const unsigned long dtime = 500;
     const double steps = 10;
     const unsigned long toup = 150;
@@ -84,27 +66,21 @@ private:
     Servo _servo_right;
     Servo _servo_updown;
 
-    CircIntersec _get_coord_intersec(double x0, double y0, double x1, double y1,
-                                     double r0, double r1);
-
-    MotorAngles _coordinate_to_angles(double xe, double ye);
 
 public:
 
     SCARA(Servo, Servo, Servo, Arms);
-    void set_arms(Arms arms){
-        _arms = arms;
-    }
 
     double get_ymax();
     double get_xmean();
 
+    InterCircum get_intersection(double, double, double, double, double, double);
+
     void move(double x, double y);
     void move_updown();
-
     void line(double x0, double y0, double xf, double yf);
-
     void rectangle(double x0, double y0, double width, double height);
+
 
 };
 
