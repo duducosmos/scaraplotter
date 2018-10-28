@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <SCARA.h>
-#include <ButtonPanel.h>
+#include <ControlPanel.h>
 #include <Controller.h>
 
 Servo servo_left;
@@ -11,7 +11,7 @@ Servo servo_updow;
 const Arms arms = {44.2, 44.2, 44.2, 47.5, 47.5};
 SCARA scara(servo_left, servo_right, servo_updow, arms);
 
-ButtonPanel buttonsPanel(A0);
+ControlPanel buttonsPanel(A0, A1, 2, -20, 20, 10, 80);
 
 Controller controller(scara);
 
@@ -23,7 +23,6 @@ void setup() {
     servo_right.attach(8);
     servo_updow.attach(4);
 
-    controller.attachButtonPanel(&buttonsPanel);
 
     Serial.begin(9600);
 

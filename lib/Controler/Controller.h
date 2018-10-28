@@ -1,22 +1,22 @@
 #include <Arduino.h>
 #include <SCARA.h>
-#include <ButtonPanel.h>
-#include <ObserverButtonPanel.h>
+#include <ControlPanel.h>
+#include <ObserverControlPanel.h>
 
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-class Controller: public ObserverButtonPanel{
+class Controller: public ObserverControlPanel{
 private:
     SCARA _scara;
-    TimeRangePressed button_pressed;
     const unsigned long mintime = 100;
+    PValues pvalues;
 
     void _update();
 
 public:
     Controller(SCARA);
-    void onReceiveDataFromButtonPanel(ButtonPanel*) override;
+    void onReceiveDataFromPanel(ControlPanel*) override;
 
 };
 
