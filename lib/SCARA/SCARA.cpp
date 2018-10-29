@@ -69,10 +69,13 @@ InterCircum SCARA::get_intersection(double x0, double y0, double r0,
 
 void SCARA::move(double x, double y){
 
+    /*
+
     Serial.print("x: ");
     Serial.print(x);
     Serial.print(", y:");
     Serial.println(y);
+    */
 
 
     InterCircum intercircum = get_intersection(-_arms.AB / 2.0, 0, _arms.AC,
@@ -90,10 +93,12 @@ void SCARA::move(double x, double y){
         InterCircum intercircum2 = get_intersection(_arms.AB / 2.0, 0, _arms.AC,
                                                    x, y,  _arms.CE);
 
+    /*
        Serial.print("xs1: ");
        Serial.print(intercircum.xs1);
        Serial.print(", xs2: ");
        Serial.println(intercircum.xs2);
+       */
 
         if(intercircum2.is_intersected == true){
            tmp = max(intercircum2.xs1, intercircum2.xs2) - _arms.AB / 2.0;
@@ -103,10 +108,13 @@ void SCARA::move(double x, double y){
            t0 = millis();
            while(millis() - t0 <= dtime);
 
+           /*
+
            Serial.print("Alpha: ");
            Serial.print(((int) _alpha));
            Serial.print(", Beta: ");
            Serial.println(((int) _beta + 1));
+           */
 
            _servo_right.write(((int) _beta + 1));
            _servo_left.write(((int) _alpha));

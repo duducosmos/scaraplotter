@@ -9,10 +9,13 @@
 class Controller: public ObserverControlPanel{
 private:
     SCARA _scara;
-    const unsigned long mintime = 100;
+    const unsigned long mintime = 50;
     PValues pvalues;
+    bool _smode = true;
 
     void _update();
+    void _serialmode();
+    float _serial2float();
 
 public:
     Controller(SCARA);

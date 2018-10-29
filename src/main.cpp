@@ -11,7 +11,7 @@ Servo servo_updow;
 const Arms arms = {44.2, 44.2, 44.2, 47.5, 47.5};
 SCARA scara(servo_left, servo_right, servo_updow, arms);
 
-ControlPanel buttonsPanel(A0, A1, 2, -20, 20, 10, 80);
+ControlPanel controlPanel(A0, A1, 11, -20, 20, 10, 80);
 
 Controller controller(scara);
 
@@ -22,6 +22,8 @@ void setup() {
     servo_left.attach(7);
     servo_right.attach(8);
     servo_updow.attach(4);
+
+    controlPanel.registerOberver(&controller);
 
 
     Serial.begin(9600);
@@ -41,13 +43,10 @@ void setup() {
 
 void loop() {
 
-    //buttonsPanel.update();
-    //delay(1);
+    controlPanel.update();
+    delay(1);
 
-    scara.rectangle(-10, ymax / 2, 30, 30);
-    delay(1000);
-
-
-
+    //scara.rectangle(-10, ymax / 2, 30, 30);
+    //delay(1000);
 
 }
