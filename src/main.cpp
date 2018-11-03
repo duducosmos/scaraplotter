@@ -43,10 +43,10 @@ void setup() {
 
 void loop() {
 
-    controlPanel.update();
+    //controlPanel.update();
     delay(1);
 
-    //scara.rectangle(-10, ymax / 2, 30, 30);
-    //delay(1000);
+    scara.rectangle(-10, ymax / 2, 30, 30);
+    delay(1000);
 
 }

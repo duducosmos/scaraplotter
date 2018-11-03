@@ -103,7 +103,7 @@ if __name__ == "__main__":
     plt.plot(x, y)
     plt.show()
 
-    ser = serial.Serial('/dev/ttyUSB1', 9600)
+    ser = serial.Serial('/dev/ttyUSB0', 9600)
     ser.flushInput()
     i = 0
     for points in path:
@@ -111,7 +111,6 @@ if __name__ == "__main__":
             print("Oi")
         else:
             print(points)
-
             a = str(points[0]) + "\n"
             ser.write(a.encode())
             time.sleep(1)
